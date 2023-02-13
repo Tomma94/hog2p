@@ -1,4 +1,0 @@
-/* Localized versions of Info.plist keys */
-
-CFBundleName = "Sokoban";
-NSHumanReadableCopyright = "© UofA, 2005";

@@ -1,4 +1,0 @@
-/* Localized versions of Info.plist keys */
-
-CFBundleName = "RTAS";
-NSHumanReadableCopyright = "© UofA, 2005";
