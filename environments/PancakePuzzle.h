@@ -7,6 +7,8 @@
 #include "PermutationPuzzleEnvironment.h"
 #include <sstream>
 #include "Permutations.h"
+#include <string>
+#include <unordered_map>
 
 typedef unsigned PancakePuzzleAction;
 
@@ -32,6 +34,20 @@ static std::ostream& operator <<(std::ostream & out, const PancakePuzzleState<N>
 	for (unsigned int x = 0; x < loc.size(); x++)
 		out << +loc.puzzle[x] << " ";
 	return out;
+}
+
+template <int N>
+static int hashPuzzleState (const PancakePuzzleState<N> &loc, int i)
+{
+    std::hash<std::string> hasher;
+    std::string puzzleStr = "";
+    for (int k: loc.puzzle) {
+        puzzleStr += std::to_string(k);
+        puzzleStr += " ";
+    }
+    size_t hash = hasher(puzzleStr);
+    int h = hash % i;
+    return h;
 }
 
 template <int N>
@@ -397,6 +413,8 @@ double PancakePuzzle<N>::HCost(const PancakePuzzleState<N> &state) const
 	//		else
 	//			return 1;
 	//	}
+
+    std::cout << "In line 401 state is " << state << std::endl;
 	
 	return h_cost;
 }
@@ -435,7 +453,6 @@ double PancakePuzzle<N>::HCost(const PancakePuzzleState<N> &state, const Pancake
 	//
 	//		return PDB_Lookup( t );
 	//	}
-	
 	if (use_memory_free)
 	{
 		//assert(!"This code allocates a vector; re-write to be more efficient");
@@ -444,7 +461,11 @@ double PancakePuzzle<N>::HCost(const PancakePuzzleState<N> &state, const Pancake
 		{
 			goal_locs[goal_state.puzzle[i]] = i;
 		}
-		return DefaultH(state, goal_locs);
+        double h = DefaultH(state, goal_locs) - hashPuzzleState(state, 5);
+        if (h<0){
+            return 0;
+        } else {return h;}
+//		return DefaultH(state, goal_locs);
 	}
 	
 	if (state == goal_state)
