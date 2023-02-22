@@ -17,6 +17,7 @@
 #include <stdint.h>
 #include <unordered_map>
 #include <vector>
+#include <cstddef>
 
 struct AHash64 {
 	size_t operator()(const uint64_t &x) const
