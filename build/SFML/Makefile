@@ -46,6 +46,7 @@ PROJECTS = \
   apps/roads \
   apps/canonicalGrids \
   apps/delta \
+  apps/experiments \
   demos/DFID \
   demos/dijkstra \
   demos/astar \
