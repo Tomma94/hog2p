@@ -73,9 +73,11 @@ template <class state, class action, class environment, class openList = AStarOp
 class TemplateAStar : public GenericSearchAlgorithm<state,action,environment> {
 public:
 	TemplateAStar() {
-		ResetNodeCount(); env = 0; useBPMX = 0; stopAfterGoal = true; weight=1; reopenNodes = false; theHeuristic = 0; directed = false;
+		ResetNodeCount(); env = 0; useBPMX = 0; stopAfterGoal = true; weight=1; reopenNodes = false; theHeuristic = 0; directed = false; version = 0;
 		theConstraint = 0;
 		phi = [](double h, double g){ return g+h; };
+        phi1 = [](double h, double g){ return g+h; };
+        phi2 = [](double h, double g){ return g+h; };
 	}
 	virtual ~TemplateAStar() {}
 	void GetPath(environment *env, const state& from, const state& to, std::vector<state> &thePath);
@@ -83,7 +85,9 @@ public:
 	
 	openList openClosedList;
 	state goal, start;
-	
+    int reopenCount = 0;
+
+    int getReopenCount(){return reopenCount;}
 	bool InitializeSearch(environment *env, const state& from, const state& to, std::vector<state> &thePath);
 	bool DoSingleSearchStep(std::vector<state> &thePath);
 	void AddAdditionalStartState(state& newState);
@@ -124,6 +128,7 @@ public:
 
 	void SetReopenNodes(bool re) { reopenNodes = re; }
 	bool GetReopenNodes() { return reopenNodes; }
+    void setVersion(int v) {version = v;}
 
 	// Only necessary for BPMX computation
 	void SetDirected(bool d) { directed = d; }
@@ -159,6 +164,8 @@ public:
 	{
 		weight = w;
 		phi = [=](double h, double g){ return g+weight*h; };
+        phi1 = [=](double h, double g){ return g+weight*h; };
+        phi2 = [=](double h, double g){ return g+weight*h; };
 	}
 	double GetWeight() { return weight; }
 private:
@@ -174,9 +181,12 @@ private:
 	double goalFCost;
 	double weight;
 	std::function<double(double, double)> phi;
+    std::function<double(double, double)> phi1;
+    std::function<double(double, double)> phi2;
 	bool directed;
 	int useBPMX;
 	bool reopenNodes;
+    int version;
 	uint64_t uniqueNodesExpanded;
 	environment *radEnv;
 	Heuristic<state> *theHeuristic;
@@ -405,8 +415,25 @@ bool TemplateAStar<state,action,environment,openList>::DoSingleSearchStep(std::v
 				}
 				if (reopenNodes)
 				{
-					if (fless(openClosedList.Lookup(nodeid).g+edgeCosts[x], openClosedList.Lookup(neighborID[x]).g))
+                    bool result;
+                    switch (version) {
+                        case 0:
+                            result = fless(openClosedList.Lookup(nodeid).g+edgeCosts[x], openClosedList.Lookup(neighborID[x]).g);
+                            break;
+                        case 1:
+                            result = fless(openClosedList.Lookup(nodeid).g+weight*edgeCosts[x], openClosedList.Lookup(neighborID[x]).g);
+                            break;
+                        case 2:
+                            result = fless(weight*(openClosedList.Lookup(nodeid).g+edgeCosts[x]), openClosedList.Lookup(neighborID[x]).g);
+                            break;
+                        default:
+                            result = fless(openClosedList.Lookup(nodeid).g+edgeCosts[x], openClosedList.Lookup(neighborID[x]).g);
+                            break;
+
+                    }
+					if (result)
 					{
+                        reopenCount ++;
 						auto &i = openClosedList.Lookup(neighborID[x]);
 						i.parentID = nodeid;
 						i.g = openClosedList.Lookup(nodeid).g+edgeCosts[x];
