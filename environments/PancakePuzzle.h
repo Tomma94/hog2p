@@ -414,8 +414,7 @@ double PancakePuzzle<N>::HCost(const PancakePuzzleState<N> &state) const
 	//			return 1;
 	//	}
 
-    std::cout << "In line 401 state is " << state << std::endl;
-	
+
 	return h_cost;
 }
 
