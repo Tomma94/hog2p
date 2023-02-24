@@ -5,51 +5,36 @@
 
 const int W = 4;
 const int H = 4;
-MNPuzzleState<4, 4> GetKorfInstance(int which);
-void TestMN() {
-    printf("Instance,Stack,Weight,Version,Path Length,Expanded,Necessary,Elapsed,Reopens,Generated\n");
-//    for (int gap = 0; gap < 3; gap++){
-        MNPuzzle<W,H> tile;
-        MNPuzzleState<W,H> start;
-        MNPuzzleState<W,H> goal;
-        goal.Reset();
-        std::vector<MNPuzzleState<W,H>> path;
-        Timer timer;
-        for(int id=0; id < 100; id++){
-            start = GetKorfInstance(id);
 
-//            srandom(id);
-//            std::vector<int> perm = PermutationPuzzle::PermutationPuzzleEnvironment<MNPuzzleState<W,H>, slideDir>::Get_Random_Permutation(W*H);
-//
-//            // construct puzzle
-//            for (unsigned i = 0; i < perm.size(); i++)
-//            {
-//                start.puzzle[i] = perm[i];
-//            }
+void TestMN(float weight, int instance, std::string weighted_problem) {
+    printf("Instance,Weight,Version,Path Length,Expanded,Necessary,Elapsed,Reopens,Generated\n");
+    MNPuzzle<W, H> tile;
+    if (weighted_problem == "Squared"){
+        tile.SetWeighted(kSquared);
+    }
+    MNPuzzleState<W, H> start;
+    MNPuzzleState<W, H> goal;
+    goal.Reset();
+    std::vector<MNPuzzleState<W, H>> path;
+    Timer timer;
+    start = GetKorfInstance(instance);
+    float weights[13] = {1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2, 3, 4, 5};
+    for (int version = 0; version < 3; version++) {
+        TemplateAStar<MNPuzzleState<W, H>, slideDir, MNPuzzle<W, H>> astar;
+        astar.SetWeight(weight);
+        astar.setVersion(version);
+        astar.SetReopenNodes(true);
+        timer.StartTimer();
+        astar.GetPath(&tile, start, goal, path);
+        timer.EndTimer();
+        std::cout << instance  << "," << weight << "," << version << "," << tile.GetPathLength(path) << ","
+                  << astar.GetNodesExpanded() << "," << astar.GetNecessaryExpansions() << ","
+                  << timer.GetElapsedTime() << "," << astar.getReopenCount() << "," << astar.GetNodesTouched()
+                  << std::endl;
+    }
 
-//            std::cout << "GAP-" << gap << " Instance " << id << " Stack: " << start << std::endl;
-
-
-                float weights[13] = {1.1,1.2,1.3,1.4,1.5,1.6,1.7,1.8,1.9,2,3,4,5};
-                for (float weight : weights){
-                    for (int j=0; j<3 ; j++){
-                        TemplateAStar<MNPuzzleState<W,H>, slideDir, MNPuzzle<W,H>> astar;
-                        astar.SetWeight(weight);
-                        astar.setVersion(j);
-                        astar.SetReopenNodes(true);
-                        timer.StartTimer();
-                        astar.GetPath(&tile, start, goal, path);
-                        timer.EndTimer();
-                        std::cout << id << "," << start << "," << weight << "," << j << "," << tile.GetPathLength(path) << "," <<  astar.GetNodesExpanded() << "," <<  astar.GetNecessaryExpansions() << "," << timer.GetElapsedTime() << "," << astar.getReopenCount() << "," << astar.GetNodesTouched() <<std::endl;
-//                        printf("%i,%i,A* version %i found path length %1.0f; %llu expanded; %llu necessary; %1.2fs elapsed; %llu reopens; %llu generated\n", gap, id,  j, pancake.GetPathLength(path),
-//                               astar.GetNodesExpanded(), astar.GetNecessaryExpansions(), timer.GetElapsedTime(), astar.getReopenCount(), astar.GetNodesTouched());
-                    }
-
-
-            }
-        }
-//    }
 }
+
 
 MNPuzzleState<4, 4> GetKorfInstance(int which) {
     int instances[100][16] =
