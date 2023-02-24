@@ -22,8 +22,15 @@ int main(int argc, char* argv[])
 
 
     else if (strcmp(argv[1], "-stp") == 0){
-        TestMN();
+        if(argc>=4){
+            TestMN(atof(argv[2]), atoi(argv[3]), argv[4]);
+        }
+        else {
+            assert(!"Not enough arguments");
+        }
+
     }
+
     else{
         assert(!"Domain unrecognized");
     }
