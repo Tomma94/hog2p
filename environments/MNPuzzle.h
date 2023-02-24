@@ -59,6 +59,20 @@ public:
 //	int puzzle[width*height];
 };
 
+template <int width, int height>
+static int hashPuzzleState (const MNPuzzleState<width,height> &loc, int i)
+{
+    std::hash<std::string> hasher;
+    std::string puzzleStr = "";
+    for (int k: loc.puzzle) {
+        puzzleStr += std::to_string(k);
+        puzzleStr += " ";
+    }
+    size_t hash = hasher(puzzleStr);
+    int h = hash % i;
+    return h;
+}
+
 namespace std {
 	
 	template <int w, int h>
@@ -670,7 +684,7 @@ bool MNPuzzle<width, height>::InvertAction(slideDir &a) const
 template <int width, int height>
 double MNPuzzle<width, height>::HCost(const MNPuzzleState<width, height> &state1) const
 {
-	return DefaultH(state1);
+	return DefaultH(state1) - hashPuzzleState(state1,7);
 }
 
 template <int width, int height>
@@ -688,7 +702,6 @@ double MNPuzzle<width, height>::HCost(const MNPuzzleState<width, height> &state1
 //		fprintf(stderr, "ERROR: HCost called with a state with wrong size.\n");
 //		exit(1);
 //	}
-	
 	double hval = 0;
 	//	if (PDB.size() != 0)
 	//		hval = std::max(hval, PDB_Lookup(state1));
@@ -748,8 +761,7 @@ double MNPuzzle<width, height>::HCost(const MNPuzzleState<width, height> &state1
 //		else
 //			return 1;
 //	}
-	
-	return hval;
+	return hval - hashPuzzleState(state1,7);
 }
 
 template <int width, int height>
